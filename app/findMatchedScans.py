@@ -19,7 +19,6 @@ def find_files():
     api_key = (config['inputs']['api-key']['key'])
     fw = flywheel.Client(api_key=api_key)
 
-    print("API key is : ", api_key)
     print(dir(fw))
 
     # Get the parent id from inputs in config file
@@ -41,7 +40,7 @@ def find_files():
     # --- fast vs slow --- #
     speed = 'standard'
     for file in os.listdir('/flywheel/v0/input/axi/'):
-        if fnmatch.fnmatch(file, '*Fast*'):
+        if fnmatch.fnmatch(file.upper(), '*FAST*'):
             speed = 'Fast'
         else:
             speed = 'standard'
@@ -54,8 +53,9 @@ def find_files():
                 print("acq tags are : ", acq.tags)
                 for file in acq.files: # get the files in the acquisition
                     # Screen file object information & download the desired file
-                    if file['type'] == 'nifti' and 'T2' in file.name and 'Fast' in file.name:
-                        if 'SAG' in file.name:
+                    if file['type'] == 'nifti' and 'T2' in file.name.upper() and 'FAST' in file.name.upper():
+                        if 'SAG' in file.name.upper():
+                            print("downloading SAG file...")
                             sag = file
                             download_dir = ('/flywheel/v0/input/sag')
                             if not os.path.exists(download_dir):
@@ -63,7 +63,8 @@ def find_files():
                             download_path = download_dir + '/' + sag.name
                             sag.download(download_path)
 
-                        elif 'COR' in file.name:
+                        elif 'COR' in file.name.upper():
+                            print("downloading COR file...")
                             cor = file
                             download_dir = ('/flywheel/v0/input/cor')
                             if not os.path.exists(download_dir):
@@ -79,8 +80,8 @@ def find_files():
                 print("acq tags are : ", acq.tags)
                 for file in acq.files: # get the files in the acquisition
                     # Screen file object information & download the desired file
-                    if file['type'] == 'nifti' and 'T2' in file.name and 'Fast' not in file.name:
-                        if 'SAG' in file.name:
+                    if file['type'] == 'nifti' and 'T2' in file.name.upper() and 'FAST' not in file.name.upper():
+                        if 'SAG' in file.name.upper():
                             sag = file
                             download_dir = ('/flywheel/v0/input/sag')
                             if not os.path.exists(download_dir):
@@ -88,7 +89,7 @@ def find_files():
                             download_path = download_dir + '/' + sag.name
                             sag.download(download_path)
 
-                        elif 'COR' in file.name:
+                        elif 'COR' in file.name.upper():
                             cor = file
                             download_dir = ('/flywheel/v0/input/cor')
                             if not os.path.exists(download_dir):
