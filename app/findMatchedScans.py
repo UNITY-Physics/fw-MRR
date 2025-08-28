@@ -48,7 +48,7 @@ def find_files():
     if speed == 'Fast':
         # get the acquisition from the session
         for acq in session_container.acquisitions.iter():
-            if 'T2' in acq.label and 'QC-failed' not in acq.tags: # restrict to T2 acquisitions
+            if 'T2' in acq.label or 't2' in acq.label and 'QC-failed' not in acq.tags: # restrict to T2 acquisitions
                 print("acq is : ", acq.label)
                 print("acq tags are : ", acq.tags)
                 for file in acq.files: # get the files in the acquisition
@@ -75,7 +75,7 @@ def find_files():
     elif speed == 'standard':
         # get the acquisition from the session
         for acq in session_container.acquisitions.iter():
-            if 'T2' in acq.label and 'QC-failed' not in acq.tags: # restrict to T2 acquisitions
+            if 'T2' in acq.label or 't2' in acq.label and 'QC-failed' not in acq.tags: # restrict to T2 acquisitions
                 print("acq is : ", acq.label)
                 print("acq tags are : ", acq.tags)
                 for file in acq.files: # get the files in the acquisition
