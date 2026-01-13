@@ -1,11 +1,10 @@
 import flywheel
 import json
+import pydicom
 
 
 def get_demo():
-    PatientSex = "NA"
-    age = 0
-
+    """Get subject and session label from demo input file."""
     # Read config.json file
     p = open('/flywheel/v0/config.json')
     config = json.loads(p.read())
@@ -29,5 +28,21 @@ def get_demo():
     session_label = session.label
     subject_label = session.subject.label
 
-    print("Demographics: ", subject_label, session_label, age, PatientSex)
-    return subject_label, session_label
+    # # pull session comments from dicom & return to session notes
+    for file in input_container.files:
+        if file.type == 'dicom':
+            try:
+                print(file.info.keys())
+                session_notes = file.info.get("PatientComments")
+                
+            except Exception as e:
+                print("Error pulling info:", e)
+                session_notes = None
+    
+            print("Session notes (PatientComments):", session_notes)
+            # Add note to session if present
+            if session_notes:
+                session.add_note(session_notes)
+
+            print("Demographics:", subject_label, session_label)
+            return subject_label, session_label

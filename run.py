@@ -26,19 +26,36 @@ def main(context: GearToolkitContext) -> None:
 
     # If one input is given no sub folders are created, so check if these exist, if not run find_files
     if not os.path.exists('/flywheel/v0/input/cor') or not os.path.exists('/flywheel/v0/input/sag'):
-        find_files()
+        modality = find_files()
+    else:
+        axial_files = os.listdir('/flywheel/v0/input/axi/')
+        axial_file = axial_files[0].upper()
+        if 'T1' in axial_file:
+            modality = 'T1'
+        elif 'T2' in axial_file:
+            modality = 'T2'
+        else:
+            raise RuntimeError(f"Axial input file does not contain T1 or T2: {axial_file}")
 
-    # Get pixel size from nifti header
-    pixdim = pixSize()
+    print(f"Modality is: {modality}")
+
+    # # Get pixel size from nifti header
+    # pixdim = pixSize()
 
     # Main event
-    command = "/flywheel/v0/app/ciso-gear.sh" + " " + subject_label  + " " + session_label # + str(pixdim)
-    print(command)
+    command = [
+        "/flywheel/v0/app/ciso-gear.sh",
+        subject_label,
+        session_label,
+        modality
+    ]
+
+    print(" ".join(command))
     exec_command(
     command,
-    shell=True,
+    shell=False,
     cont_output=True,
-        )
+    )
 
 # Only execute if file is run as main, not when imported by another module
 if __name__ == "__main__":  # pragma: no cover

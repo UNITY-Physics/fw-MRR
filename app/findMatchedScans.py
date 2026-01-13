@@ -11,6 +11,11 @@ import fnmatch
 # 5. Loop through the list of files and get the file object information & download the file
 
 def find_files():
+    """
+    Detect modality (T1/T2) and acquisition speed (Fast/standard)
+    from the axial input file, download matching acquisitions,
+    and return the modality label.
+    """
     # Read config.json file
     p = open('/flywheel/v0/config.json')
     config = json.loads(p.read())
@@ -37,62 +42,51 @@ def find_files():
         session_container = fw.get(session_id)
         print("session_container is : ", session_container.label)
 
-    # --- fast vs slow --- #
-    speed = 'standard'
-    for file in os.listdir('/flywheel/v0/input/axi/'):
-        if fnmatch.fnmatch(file.upper(), '*FAST*'):
-            speed = 'Fast'
-        else:
-            speed = 'standard'
 
-    if speed == 'Fast':
-        # get the acquisition from the session
-        for acq in session_container.acquisitions.iter():
-            if 'T2' in acq.label or 't2' in acq.label and 'QC-failed' not in acq.tags: # restrict to T2 acquisitions
-                print("acq is : ", acq.label)
-                print("acq tags are : ", acq.tags)
-                for file in acq.files: # get the files in the acquisition
-                    # Screen file object information & download the desired file
-                    if file['type'] == 'nifti' and 'T2' in file.name.upper() and 'FAST' in file.name.upper():
-                        if 'SAG' in file.name.upper():
-                            print("downloading SAG file...")
-                            sag = file
-                            download_dir = ('/flywheel/v0/input/sag')
-                            if not os.path.exists(download_dir):
-                                os.mkdir(download_dir)
-                            download_path = download_dir + '/' + sag.name
-                            sag.download(download_path)
+    # --- determine modality + speed from axial input --- #
+    axial_files = os.listdir('/flywheel/v0/input/axi/')
+    if not axial_files:
+        raise RuntimeError("No axial input file found in /flywheel/v0/input/axi/")
 
-                        elif 'COR' in file.name.upper():
-                            print("downloading COR file...")
-                            cor = file
-                            download_dir = ('/flywheel/v0/input/cor')
-                            if not os.path.exists(download_dir):
-                                os.mkdir(download_dir)
-                            download_path = download_dir + '/' + cor.name
-                            cor.download(download_path)
+    # assume single axial file
+    axial_file = axial_files[0].upper()
 
-    elif speed == 'standard':
-        # get the acquisition from the session
-        for acq in session_container.acquisitions.iter():
-            if 'T2' in acq.label or 't2' in acq.label and 'QC-failed' not in acq.tags: # restrict to T2 acquisitions
-                print("acq is : ", acq.label)
-                print("acq tags are : ", acq.tags)
-                for file in acq.files: # get the files in the acquisition
-                    # Screen file object information & download the desired file
-                    if file['type'] == 'nifti' and 'T2' in file.name.upper() and 'FAST' not in file.name.upper():
-                        if 'SAG' in file.name.upper():
-                            sag = file
-                            download_dir = ('/flywheel/v0/input/sag')
-                            if not os.path.exists(download_dir):
-                                os.mkdir(download_dir)
-                            download_path = download_dir + '/' + sag.name
-                            sag.download(download_path)
+    if 'T1' in axial_file:
+        modality = 'T1'
+    elif 'T2' in axial_file:
+        modality = 'T2'
+    else:
+        raise RuntimeError(f"Axial input file does not contain T1 or T2: {axial_file}")
 
-                        elif 'COR' in file.name.upper():
-                            cor = file
-                            download_dir = ('/flywheel/v0/input/cor')
-                            if not os.path.exists(download_dir):
-                                os.mkdir(download_dir)
-                            download_path = download_dir + '/' + cor.name
-                            cor.download(download_path)
+    speed = 'Fast' if 'FAST' in axial_file else 'standard'
+    print(f"Detected modality: {modality}, speed: {speed}")
+
+    # --- process acquisitions --- #
+    for acq in session_container.acquisitions.iter():
+        if modality.lower() in acq.label.lower() and 'QC-failed' not in acq.tags:
+            print("acq is : ", acq.label)
+            print("acq tags are : ", acq.tags)
+            for file in acq.files:
+                fname = file.name.upper()
+                if file['type'] == 'nifti' and modality in fname:
+                    # filter by speed
+                    if speed == 'Fast' and 'FAST' not in fname:
+                        continue
+                    if speed == 'standard' and 'FAST' in fname:
+                        continue
+
+                    # orientation-specific downloads
+                    if 'SAG' in fname:
+                        print(f"downloading SAG {modality} file...")
+                        download_dir = '/flywheel/v0/input/sag'
+                        os.makedirs(download_dir, exist_ok=True)
+                        file.download(os.path.join(download_dir, file.name))
+
+                    elif 'COR' in fname:
+                        print(f"downloading COR {modality} file...")
+                        download_dir = '/flywheel/v0/input/cor'
+                        os.makedirs(download_dir, exist_ok=True)
+                        file.download(os.path.join(download_dir, file.name))
+
+    # return modality label for downstream use
+    return modality
