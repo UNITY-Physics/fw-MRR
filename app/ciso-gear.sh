@@ -17,7 +17,7 @@ mkdir -p ${work}
 
 sub=${1}
 ses=${2}
-
+pixDim=${3}
 ##############################################################################
 
 # Check for required files
@@ -101,8 +101,8 @@ if [[ $phantom == "true" ]]; then
   antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/T2w_AXI.nii.gz -r 1 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix}_ ${work}/T2w_AXI.nii.gz ${work}/T2w_COR.nii.gz ${work}/T2w_SAG.nii.gz 
   # -f 4x2x1 -s 2x1x0vox -q 30x20x4
 
-  echo "Resampling intermediate template to isotropic 1.5mm..."
-  ResampleImageBySpacing 3 ${work}/tmp_${prefix}_template0.nii.gz ${work}/resampledTemplate.nii.gz 1.5 1.5 1.5
+  echo "Resampling intermediate template to isotropic pixDimmm..."
+  ResampleImageBySpacing 3 ${work}/tmp_${prefix}_template0.nii.gz ${work}/resampledTemplate.nii.gz ${pixDim} ${pixDim} ${pixDim}
 
   echo "Pre-registering all acquisitions to resampled reference..."    
   for acq in `ls $work/T2w_*.nii.gz`;
@@ -138,8 +138,8 @@ else
     antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/T2w_AXI.nii.gz -r 1 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix}_ ${work}/T2w_AXI.nii.gz ${work}/T2w_COR.nii.gz ${work}/T2w_SAG.nii.gz
     # antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/T2w_AXI.nii.gz -r 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix} ${work}/* #T2w_AXI.nii.gz ${work}/T2w_COR.nii.gz ${work}/T2w_SAG.nii.gz
     
-    echo "Resampling intermediate template to isotropic 1.5mm..."
-    ResampleImageBySpacing 3 ${work}/tmp_${prefix}_template0.nii.gz ${work}/resampledTemplate.nii.gz 1.5 1.5 1.5
+    echo "Resampling intermediate template to isotropic pixDimmm..."
+    ResampleImageBySpacing 3 ${work}/tmp_${prefix}_template0.nii.gz ${work}/resampledTemplate.nii.gz ${pixDim} ${pixDim} ${pixDim}
 
     echo "Pre-registering all acquisitions to resampled reference..."    
     for acq in `ls $work/T2w_*.nii.gz`;
@@ -166,8 +166,8 @@ else
   else
 
     echo "Target template specified: ${target_template}"
-    echo "Resampling template to match input resolution 1.5mm"
-    ResampleImageBySpacing 3 /flywheel/v0/app/templates/${target_template} /flywheel/v0/app/templates/resampled_${target_template} 1.5 1.5 1.5
+    echo "Resampling template to match input resolution pixDimmm"
+    ResampleImageBySpacing 3 /flywheel/v0/app/templates/${target_template} /flywheel/v0/app/templates/resampled_${target_template} ${pixDim} ${pixDim} ${pixDim}
 
     # Pre-registration
     if [ "$(ls -A $work)" ]; then

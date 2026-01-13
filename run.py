@@ -4,6 +4,7 @@ import logging
 import os
 from pathlib import Path
 from typing import List, Tuple, Union
+import nibabel as nib
 
 # import flywheel functions
 from flywheel_gear_toolkit import GearToolkitContext
@@ -30,9 +31,23 @@ def main(context: GearToolkitContext) -> None:
 
     # Get pixel size from nifti header
     pixdim = pixSize()
+    #Get the nifti file under axial input folder ending in .nii or .nii.gz
+    input_folder = '/flywheel/v0/input/axi/'
+    input_files = [f for f in os.listdir(input_folder) if f.endswith('.nii') or f.endswith('.nii.gz')]
+    if not input_files:
+        log.error("No NIfTI files found in the axial input folder.")
+        return
+    
+    input = os.path.join(input_folder, input_files[0])
+    n1_img = nib.load(input)
+    pixdims = (n1_img.header['pixdim'])
 
+    print("pixdim is: ", pixdims)
+    #Get the smallest voxel size as scale factor
+    pixdim = min([pixdims[1] ,pixdims[2] , pixdims[3]]) 
+    print('Sampling according to smallest voxel size is: ', pixdim)  
     # Main event
-    command = "/flywheel/v0/app/ciso-gear.sh" + " " + subject_label  + " " + session_label # + str(pixdim)
+    command = "/flywheel/v0/app/ciso-gear.sh" + " " + subject_label  + " " + session_label  + " " + str(pixdim)
     print(command)
     exec_command(
     command,

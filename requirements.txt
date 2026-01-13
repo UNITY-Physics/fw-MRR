@@ -7,4 +7,5 @@ jsonschema==3.2.0 ; python_full_version >= "3.8.10" and python_version < "4.0"
 numpy==1.23.2 ; python_full_version < "4.0.0" and python_full_version >= "3.8.10"
 pandas==1.4.4 ; python_full_version >= "3.8.10" and python_full_version < "4.0.0"
 pathvalidate==2.5.2 ; python_full_version >= "3.8.10" and python_version < "4.0"
+nibabel ; python_full_version >= "3.8.10" and python_version < "4.0"
 
