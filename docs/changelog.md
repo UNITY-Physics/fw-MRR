@@ -1,5 +1,13 @@
 # Changelog
 
+V0.1.9
+- catch whitespace in session label introduced in last update
+
+V0.1.7
+28/08/2025
+- included a catch for modality (T1 or T2)
+- added session notes to output
+
 08/07/2024
 "version": "0.1.0"
 - changed output to match BIDS format

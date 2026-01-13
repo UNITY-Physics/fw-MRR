@@ -17,7 +17,14 @@ mkdir -p ${work}
 
 sub=${1}
 ses=${2}
-pixDim=${3}
+mod=${3}
+pixDim=${4}
+
+echo "Subject is: $sub"
+echo "Session is: $ses"
+echo "Modality is: $mod"
+echo "Pixel Dimension is: $pixDim"
+
 ##############################################################################
 
 # Check for required files
@@ -44,6 +51,9 @@ target_template="$(parse_config 'target_template')"
 prefix="$(parse_config 'prefix')" 
 phantom="$(parse_config 'phantom')" 
 
+prefix=${prefix}_${mod}
+
+echo "prefix is: $prefix"
 ##############################################################################
 # Handle INPUT file
 
@@ -62,24 +72,24 @@ fi
 # Check that input file exists
 if [[ -e $axi_input_file ]] && [[ -e $cor_input_file ]] && [[ -e $sag_input_file ]]; then
     echo "${CONTAINER}  Input file found: ${axi_input_file}"
-    cp ${axi_input_file} ${work}/T2w_AXI.nii.gz
+    cp ${axi_input_file} ${work}/${mod}w_AXI.nii.gz
     echo "${CONTAINER}  Input file found: ${cor_input_file}"
-    cp ${cor_input_file} ${work}/T2w_COR.nii.gz 
+    cp ${cor_input_file} ${work}/${mod}w_COR.nii.gz 
     echo "${CONTAINER}  Input file found: ${sag_input_file}"
-    cp ${sag_input_file} ${work}/T2w_SAG.nii.gz
+    cp ${sag_input_file} ${work}/${mod}w_SAG.nii.gz
 else
   echo "** ${CONTAINER} Missing one or more Nifti inputs within input directory $INPUT_DIR **"
   prefix=${prefix}-AXI
   if [[ -e $cor_input_file ]]; then
     echo "${CONTAINER}  Input file found: ${cor_input_file}"
-    cp ${cor_input_file} ${work}/T2w_COR.nii.gz
+    cp ${cor_input_file} ${work}/${mod}w_COR.nii.gz
     prefix=${prefix}-COR
   else
     echo "${CONTAINER}  Missing coronal input file"
   fi
   if [[ -e $sag_input_file ]]; then
     echo "${CONTAINER}  Input file found: ${sag_input_file}"
-    cp ${sag_input_file} ${work}/T2w_SAG.nii.gz
+    cp ${sag_input_file} ${work}/${mod}w_SAG.nii.gz
     prefix=${prefix}-SAG
   else
     echo "${CONTAINER}  Missing sagittal input file"
@@ -89,6 +99,8 @@ fi
 
 echo "work directory contents:"
 echo "$(ls -l $work)"
+
+
 ##############################################################################
 # Run hyperfine-ciso algorithm
 echo "${CONTAINER}  Running hyperfine-ciso algorithm"
@@ -98,14 +110,14 @@ if [[ $phantom == "true" ]]; then
 
   # Create a isotropic image from the 3 T2 images
   echo "Running antsMultivariateTemplateConstruction2.sh with rigid registration to axial image..."
-  antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/T2w_AXI.nii.gz -r 1 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix}_ ${work}/T2w_AXI.nii.gz ${work}/T2w_COR.nii.gz ${work}/T2w_SAG.nii.gz 
+  antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/${mod}w_AXI.nii.gz -r 1 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix}_ ${work}/${mod}w_AXI.nii.gz ${work}/${mod}w_COR.nii.gz ${work}/${mod}w_SAG.nii.gz 
   # -f 4x2x1 -s 2x1x0vox -q 30x20x4
 
-  echo "Resampling intermediate template to isotropic pixDimmm..."
+  echo "Resampling intermediate template to isotropic pixDim mm..."
   ResampleImageBySpacing 3 ${work}/tmp_${prefix}_template0.nii.gz ${work}/resampledTemplate.nii.gz ${pixDim} ${pixDim} ${pixDim}
 
   echo "Pre-registering all acquisitions to resampled reference..."    
-  for acq in `ls $work/T2w_*.nii.gz`;
+  for acq in `ls $work/${mod}w_*.nii.gz`;
       do
       echo "Registering ${acq} to reference"
       outname=`basename ${acq} .nii.gz`
@@ -129,20 +141,20 @@ else
   if [[ $target_template == "None" ]]; then
     echo "***"
     echo "No target template specified, trying self-reference..."
-    echo "WARNING: BETA FEATURE - May not work as expected..."
+    # echo "WARNING: BETA FEATURE - May not work as expected..."
     echo "Check output for quality control!"
     echo "***"
     
     # Create a template from the 3 T2 images
     echo "Running antsMultivariateTemplateConstruction2.sh with rigid registration to axial image..."
-    antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/T2w_AXI.nii.gz -r 1 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix}_ ${work}/T2w_AXI.nii.gz ${work}/T2w_COR.nii.gz ${work}/T2w_SAG.nii.gz
-    # antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/T2w_AXI.nii.gz -r 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix} ${work}/* #T2w_AXI.nii.gz ${work}/T2w_COR.nii.gz ${work}/T2w_SAG.nii.gz
+    antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/${mod}w_AXI.nii.gz -r 1 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix}_ ${work}/${mod}w_AXI.nii.gz ${work}/${mod}w_COR.nii.gz ${work}/${mod}w_SAG.nii.gz
+    # antsMultivariateTemplateConstruction2.sh -d ${imageDimension} -i ${Iteration} -z ${work}/${mod}w_AXI.nii.gz -r 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t ${transformationModel} -m ${similarityMetric} -o ${work}/tmp_${prefix} ${work}/* #${mod}w_AXI.nii.gz ${work}/${mod}w_COR.nii.gz ${work}/${mod}w_SAG.nii.gz
     
-    echo "Resampling intermediate template to isotropic pixDimmm..."
+    echo "Resampling intermediate template to isotropic pixDim mm..."
     ResampleImageBySpacing 3 ${work}/tmp_${prefix}_template0.nii.gz ${work}/resampledTemplate.nii.gz ${pixDim} ${pixDim} ${pixDim}
 
     echo "Pre-registering all acquisitions to resampled reference..."    
-    for acq in `ls $work/T2w_*.nii.gz`;
+    for acq in `ls $work/${mod}w_*.nii.gz`;
         do
         echo "Registering ${acq} to reference"
         outname=`basename ${acq} .nii.gz`
@@ -166,7 +178,7 @@ else
   else
 
     echo "Target template specified: ${target_template}"
-    echo "Resampling template to match input resolution pixDimmm"
+    echo "Resampling template to match input resolution pixDim mm"
     ResampleImageBySpacing 3 /flywheel/v0/app/templates/${target_template} /flywheel/v0/app/templates/resampled_${target_template} ${pixDim} ${pixDim} ${pixDim}
 
     # Pre-registration
@@ -211,9 +223,10 @@ fi
 # Check isotantsMultivariateTemplateConstruction2.sh completed & clean up output
 if [[ -e $work/${prefix}template0.nii.gz ]]; then
     echo "Isotropic image generated from othogonal aquisitions"
-    echo "Cleaning up..."
-    mv $work/${prefix}template0.nii.gz /flywheel/v0/output/sub-${sub}_ses-${ses}_rec-${prefix}.nii.gz
-    mv $work/reg_*_Warped.nii.gz /flywheel/v0/output/
+    ls -l $work/${prefix}template0.nii.gz
+    ses_date="${ses%% *}"  # Removes everything after the first space
+    mv $work/${prefix}template0.nii.gz /flywheel/v0/output/sub-${sub}_ses-${ses_date}_rec-${prefix}.nii.gz || echo "Move failed with exit code: $?"
+    mv $work/reg_*_Warped.nii.gz /flywheel/v0/output/ || echo "Move failed with exit code: $?"
 else
     echo "${CONTAINER} Template not generated!"
     echo "Work directory contents:"

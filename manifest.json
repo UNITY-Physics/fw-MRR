@@ -35,7 +35,7 @@
       "type": "boolean"
     },
     "prefix": {
-      "default": "T2w_mrr",
+      "default": "mrr",
       "description": "A prefix that is prepended to all output files.",
       "type": "string"
     },
@@ -66,7 +66,7 @@
       "type": "string"
     },
     "target_template": {
-      "default": "mni_icbm152_t2_tal_nlin_asym_55_ext.nii",
+      "default": "None",
       "description": "Use this volume as the target of all inputs. When set to None, the script will create an unbiased starting point by averaging all inputs.",
       "enum": [
         "None",
@@ -136,7 +136,7 @@
     },
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/mrr:0.1.6"
+      "image": "flywheel/mrr:0.1.10"
     },
     "kcl-app-binary": "app/ciso-gear.sh",
     "kcl-app-modalities": [
@@ -156,7 +156,7 @@
       "non-commercial-use-only": false
     }
   },
-  "description": " ANTs based gear that runs antsMultivariateTemplateConstruction2.sh script to generate an isotropic image by co-registering a set of multiplanar input images.",
+  "description": " ANTs based gear that runs antsMultivariateTemplateConstruction2.sh script to generate an isotropic image by co-registering a set of multiplanar input images. Default configuration is to have no target template specified and will align to axial native space.",
   "environment": {
     "ANTSPATH": "/opt/ants/bin/",
     "CONDA_DIR": "/opt/conda",
@@ -199,5 +199,5 @@
   "name": "mrr",
   "url": "https://github.com/ANTsX/ANTs",
   "source": "http://www.ncbi.nlm.nih.gov/pubmed/20851191",
-  "version": "0.1.6"
+  "version": "0.1.10"
 }
