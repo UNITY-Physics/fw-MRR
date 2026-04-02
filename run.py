@@ -49,11 +49,12 @@ def main(context: GearToolkitContext) -> None:
         log.error("No NIfTI files found in the axial input folder.")
         return
     
-    input = os.path.join(input_folder, input_files[0])
-    n1_img = nib.load(input)
-    pixdims = (n1_img.header['pixdim'])
+    #input = os.path.join(input_folder, input_files[0])
+    #n1_img = nib.load(input)
+    #pixdims = (n1_img.header['pixdim'])
     #Get the smallest voxel size as scale factor
-    pixdim = min([pixdims[1] ,pixdims[2] , pixdims[3]]) 
+    #pixdim = min([pixdims[1] ,pixdims[2] , pixdims[3]]) 
+    pixdim = 1
     print('Sampling according to smallest voxel size is: ', pixdim)  
     # # Get pixel size from nifti header
     # pixdim = pixSize()

@@ -5,3 +5,6 @@
 
 13/01/2026: v 0.1.10
     - Resampling relies on voxels dimensions of the image (instead of the default 1.5)
+
+1/4/2026: v 0.1.11
+    - Reverting resampling to use 1mm default, due to Hyperfine upsampling change.
