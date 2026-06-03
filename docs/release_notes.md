@@ -8,3 +8,6 @@
 
 1/4/2026: v 0.1.11
     - Reverting resampling to use 1mm default, due to Hyperfine upsampling change.
+
+3/6/2026: v 0.1.12
+    - Added metadata to output file (MR and modality)

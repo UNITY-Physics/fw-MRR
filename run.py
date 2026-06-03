@@ -19,10 +19,11 @@ from utils.demo import get_demo
 # module.
 
 log = logging.getLogger(__name__)
+modality = None
 
 def main(context: GearToolkitContext) -> None:
     """Parses config and runs."""
-
+    global modality
     subject_label, session_label = get_demo()
 
     # If one input is given no sub folders are created, so check if these exist, if not run find_files
@@ -75,6 +76,8 @@ def main(context: GearToolkitContext) -> None:
     cont_output=True,
     )
 
+
+
 # Only execute if file is run as main, not when imported by another module
 if __name__ == "__main__":  # pragma: no cover
     # Get access to gear config, inputs, and sdk client if enabled.
@@ -86,3 +89,23 @@ if __name__ == "__main__":  # pragma: no cover
 
         # Pass the gear context into main function defined above.
         main(gear_context)
+
+
+        # with GearToolkitContext() as gear_context:
+        #Find the file /flywheel/v0/output/reg_*_Warped.nii.gz /flywheel/v0/output/
+        output_files = [f for f in os.listdir('/flywheel/v0/output/') if "mrr" in f and f.endswith('.nii.gz')]
+        if not output_files:
+            log.error("No output files found in the output folder.")
+        else:
+            #Get the first file found
+            print("Output file found: ", output_files[0])
+            print(modality)
+            try:
+                output_file = output_files[0]
+                gear_context.metadata.update_file_metadata(
+                    output_file, 
+                    modality="MR",
+                    classification={"Measurement": [modality]}
+                )
+            except Exception as e:
+                log.error(f"Error updating file metadata: {e}")
