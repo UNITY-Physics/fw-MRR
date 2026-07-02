@@ -11,3 +11,9 @@
 
 3/6/2026: v 0.1.12
     - Added metadata to output file (MR and modality)
+
+3/6/2026: v 0.1.13
+    - Added INTENT : Structural to metadata to output file
+
+2/7/2026: v 0.1.14
+    - read-write permission activated to allow session note + info recording from patient_comments dcm header

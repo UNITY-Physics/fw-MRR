@@ -3,7 +3,7 @@ import json
 import pydicom
 
 
-def get_demo():
+def get_demo(context):
     """Get subject and session label from demo input file."""
     # Read config.json file
     p = open('/flywheel/v0/config.json')
@@ -32,7 +32,7 @@ def get_demo():
     for file in input_container.files:
         if file.type == 'dicom':
             try:
-                print(file.info.keys())
+                #print(file.info.keys())
                 session_notes = file.info.get("PatientComments")
                 
             except Exception as e:
@@ -40,9 +40,16 @@ def get_demo():
                 session_notes = None
     
             print("Session notes (PatientComments):", session_notes)
+            
             # Add note to session if present
             if session_notes:
+                print("Session notes added to session container.")
+                #Update session info 
                 session.add_note(session_notes)
+
+                session_info = session.info
+                session_info["session_comments"] = session_notes
+                session.update_info(session_info)
 
             print("Demographics:", subject_label, session_label)
             return subject_label, session_label

@@ -24,7 +24,7 @@ modality = None
 def main(context: GearToolkitContext) -> None:
     """Parses config and runs."""
     global modality
-    subject_label, session_label = get_demo()
+    subject_label, session_label = get_demo(context)
 
     # If one input is given no sub folders are created, so check if these exist, if not run find_files
     if not os.path.exists('/flywheel/v0/input/cor') or not os.path.exists('/flywheel/v0/input/sag'):
@@ -105,7 +105,7 @@ if __name__ == "__main__":  # pragma: no cover
                 gear_context.metadata.update_file_metadata(
                     output_file, 
                     modality="MR",
-                    classification={"Measurement": [modality]}
+                    classification={"Measurement": [modality], "Intent": ["Structural"]},
                 )
             except Exception as e:
                 log.error(f"Error updating file metadata: {e}")
